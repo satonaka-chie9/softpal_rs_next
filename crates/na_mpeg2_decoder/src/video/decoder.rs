@@ -11,14 +11,13 @@ use super::tables::{
 };
 use super::vlc::{get_rl_vlc, get_vlc2};
 use super::vlctables::{
-    MB_TYPE_16x8, MB_TYPE_16x16, MB_TYPE_BACKWARD_MV, MB_TYPE_BIDIR_MV, MB_TYPE_CBP,
+    MB_TYPE_16X16, MB_TYPE_16X8, MB_TYPE_BACKWARD_MV, MB_TYPE_BIDIR_MV, MB_TYPE_CBP,
     MB_TYPE_FORWARD_MV, MB_TYPE_INTERLACED, MB_TYPE_INTRA, MB_TYPE_QUANT, MB_TYPE_SKIP,
     MB_TYPE_ZERO_MV, MV_DIR_BACKWARD, MV_DIR_FORWARD, get_vlcs, has_cbp, is_intra, is_quant,
     mb_type_mv_2_mv_dir,
 };
 
 const PICT_TOP_FIELD: i32 = 1;
-const PICT_BOTTOM_FIELD: i32 = 2;
 const PICT_FRAME: i32 = 3;
 
 const PICT_TYPE_I: i32 = 1;
@@ -680,7 +679,7 @@ impl Decoder {
                 self.mb_intra = false;
                 self.mv_dir = MV_DIR_FORWARD;
                 self.mv_type = MV_TYPE_16X16;
-                self.cur_mb_type = MB_TYPE_SKIP | MB_TYPE_FORWARD_MV | MB_TYPE_16x16;
+                self.cur_mb_type = MB_TYPE_SKIP | MB_TYPE_FORWARD_MV | MB_TYPE_16X16;
             } else {
                 let prev_mb_type = if self.mb_x > 0 {
                     self.mb_types[self.mb_x - 1 + self.mb_y * self.mb_width]
@@ -833,7 +832,7 @@ impl Decoder {
                 match motion_type {
                     MT_FRAME => {
                         if self.picture_structure == PICT_FRAME {
-                            mb_type |= MB_TYPE_16x16;
+                            mb_type |= MB_TYPE_16X16;
                             self.mv_type = MV_TYPE_16X16;
                             for dir in 0..2 {
                                 if has_mv_dir(mb_type, dir) {
@@ -860,7 +859,7 @@ impl Decoder {
                                 }
                             }
                         } else {
-                            mb_type |= MB_TYPE_16x8 | MB_TYPE_INTERLACED;
+                            mb_type |= MB_TYPE_16X8 | MB_TYPE_INTERLACED;
                             self.mv_type = MV_TYPE_16X8;
                             for dir in 0..2 {
                                 if has_mv_dir(mb_type, dir) {
@@ -884,7 +883,7 @@ impl Decoder {
                     MT_FIELD => {
                         self.mv_type = MV_TYPE_FIELD;
                         if self.picture_structure == PICT_FRAME {
-                            mb_type |= MB_TYPE_16x8 | MB_TYPE_INTERLACED;
+                            mb_type |= MB_TYPE_16X8 | MB_TYPE_INTERLACED;
                             for dir in 0..2 {
                                 if has_mv_dir(mb_type, dir) {
                                     for j in 0..2 {
@@ -909,7 +908,7 @@ impl Decoder {
                                 }
                             }
                         } else {
-                            mb_type |= MB_TYPE_16x16 | MB_TYPE_INTERLACED;
+                            mb_type |= MB_TYPE_16X16 | MB_TYPE_INTERLACED;
                             for dir in 0..2 {
                                 if has_mv_dir(mb_type, dir) {
                                     self.field_select[dir][0] = gb.get_bits1() as i32;
@@ -963,7 +962,7 @@ impl Decoder {
                                 self.mv[dir][1][0] = mx;
                                 self.mv[dir][1][1] = my;
                                 if self.picture_structure == PICT_FRAME {
-                                    mb_type |= MB_TYPE_16x16 | MB_TYPE_INTERLACED;
+                                    mb_type |= MB_TYPE_16X16 | MB_TYPE_INTERLACED;
                                     let mut m = if self.top_field_first { 1 } else { 3 };
                                     self.mv[dir][2][0] =
                                         ((mx * m + if mx > 0 { 1 } else { 0 }) >> 1) + dmx;
@@ -975,7 +974,7 @@ impl Decoder {
                                     self.mv[dir][3][1] =
                                         ((my * m + if my > 0 { 1 } else { 0 }) >> 1) + dmy + 1;
                                 } else {
-                                    mb_type |= MB_TYPE_16x16;
+                                    mb_type |= MB_TYPE_16X16;
                                     self.mv[dir][2][0] =
                                         ((mx + if mx > 0 { 1 } else { 0 }) >> 1) + dmx;
                                     self.mv[dir][2][1] =
@@ -1611,14 +1610,6 @@ impl Decoder {
             Ok(0)
         } else {
             Ok(gb.get_xbits(code as usize))
-        }
-    }
-
-    fn scan_table(&self) -> &[u8; 64] {
-        if self.alternate_scan {
-            &FF_ALTERNATE_VERTICAL_SCAN
-        } else {
-            &FF_ZIGZAG_DIRECT
         }
     }
 
